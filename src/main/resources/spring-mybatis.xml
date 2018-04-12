@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans    
+                        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd    
+                        http://www.springframework.org/schema/context    
+                        http://www.springframework.org/schema/context/spring-context-3.1.xsd    
+                        http://www.springframework.org/schema/mvc    
+                        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+	<!-- 自动扫描 -->
+	<context:component-scan base-package="com.yuan"></context:component-scan>
+
+	<!-- JDBC配置 -->
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:/jdbc.properties" />
+	</bean>
+	<bean id="slf4j-filter" class="com.alibaba.druid.filter.logging.Slf4jLogFilter">
+		<property name="statementExecutableSqlLogEnable" value="true" />
+	</bean>
+
+	<bean id="stat-filter" class="com.alibaba.druid.filter.stat.StatFilter">
+		<property name="slowSqlMillis" value="3000" />
+		<property name="logSlowSql" value="true" />
+	</bean>
+
+	<!-- 数据源 -->
+	<bean id="dataSource" class="com.p6spy.engine.spy.P6DataSource">
+		<constructor-arg index="0">
+				<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+					init-method="init" destroy-method="close">
+					<!-- 基本属性 url、user、password -->
+					<property name="url" value="${url}" />
+					<property name="username" value="${username}" />
+					<property name="password" value="${password}" />
+					<property name="driverClassName" value="${driver}" />
+					<!-- 配置初始化大小、最小、最大 -->
+					<property name="initialSize" value="1" />
+					<property name="minIdle" value="1" />
+					<property name="maxActive" value="20" />
+					<!-- 配置获取连接等待超时的时间 -->
+					<property name="maxWait" value="10000" />
+					<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+					<property name="timeBetweenEvictionRunsMillis" value="60000" />
+					<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+					<property name="minEvictableIdleTimeMillis" value="300000" />
+					<property name="validationQuery" value="SELECT 'x' FROM DUAL" />
+					<property name="testWhileIdle" value="true" />
+					<property name="testOnBorrow" value="false" />
+					<property name="testOnReturn" value="false" />
+					<!-- 打开PSCache，并且指定每个连接上PSCache的大小 如果用Oracle，则把poolPreparedStatements配置为true，mysql可以配置为false。 -->
+					<property name="poolPreparedStatements" value="true" />
+					<property name="maxPoolPreparedStatementPerConnectionSize"
+						value="20" />
+					<!-- 监控SQL -->
+					<property name="filters" value="stat" />
+					<!-- 配置监控统计拦截的filters -->
+					<property name="proxyFilters">
+						<list>
+							<ref bean="stat-filter" />
+							<ref bean="slf4j-filter" />
+						</list>
+					</property>
+				</bean>
+			</constructor-arg>
+		</bean>
+	<!-- <bean id="dataSources" class="com.p6spy.engine.spy.P6DataSource"> <constructor-arg 
+		ref="dataSource"></constructor-arg> </bean> -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	<!-- spring和mybatis完美整合，不需要mybatis的配置映射文件 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath:com/yuan/mapping/*.xml"></property>
+	</bean>
+
+	<!-- DAO接口所在的包名，spring会自动查找其下的类，！注意这句 value="sqlSessionFactory"，不是ref而是value -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.yuan.Dao" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+
+	<!-- 事务管理transaction manager, use JtaTransactionManager for global tx -->
+	<!-- <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"> 
+		<property name="dataSource" ref="dataSource" /> </bean> -->
+
+
+
+</beans>

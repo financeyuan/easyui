@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" >
+ 
+  <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+     <param name="Target" value="System.out" /> 
+     <layout class="org.apache.log4j.PatternLayout">
+        <param name="ConversionPattern" value="%d [%t] %-5p (%C:%L) - %m%n" />
+     </layout>
+  </appender>
+
+
+  <!-- A size based rolling appender -->
+  <appender name="springfilelog" class="org.apache.log4j.RollingFileAppender">
+    <param name="File" value="${catalina.home}/logs/esayui-Spring.log"/>
+    <param name="Append" value="true"/>
+    <param name="MaxFileSize" value="10MB"/>
+    <param name="MaxBackupIndex" value="10"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d [%t] %-5p (%C:%L) - %m%n"/>
+    </layout>
+  </appender>
+  
+  <!-- A size based rolling appender -->
+  <appender name="yuan" class="org.apache.log4j.RollingFileAppender">
+    <param name="File" value="${catalina.home}/logs/easyui-Services.log"/>
+    <param name="Append" value="true"/>
+    <param name="MaxFileSize" value="10MB"/>
+    <param name="MaxBackupIndex" value="10"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d [%t] %-5p (%C:%L) - %m%n"/>
+    </layout>
+  </appender>
+  
+   <!-- A size based rolling appender -->
+  <appender name="ibatis" class="org.apache.log4j.RollingFileAppender">
+    <param name="File" value="${catalina.home}/logs/easyui-Ibatis.log"/>
+    <param name="Append" value="true"/>
+    <param name="MaxFileSize" value="10MB"/>
+    <param name="MaxBackupIndex" value="10"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d [%t] %-5p (%C:%L) - %m%n"/>
+    </layout>
+  </appender>
+
+ <logger name="org.springframework" >
+    <level value ="error" />
+    <appender-ref ref="springfilelog" />
+  </logger> 
+  
+   <logger name="java.sql" >
+    <level value ="error" />
+    <appender-ref ref="ibatis" />
+  </logger> 
+  
+  <logger name="com.yuan" >
+    <level value ="debug" />
+    <appender-ref ref="stdout" />
+    <appender-ref ref="yuan" />
+  </logger> 
+
+  <root>
+    <level value ="debug" />
+  </root>
+
+</log4j:configuration>

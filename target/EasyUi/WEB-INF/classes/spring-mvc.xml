@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+
+	<!-- 打开注解装配并自动检测Bean和定义Bean，这句不能放在spring-mybatis.xml文件中，否则扫描不到controller -->
+	<context:component-scan base-package="com.yuan.controller"></context:component-scan>
+
+	<!-- 启用spring mvc注解驱动，spring会自动为我们注册必要的几个Bean -->
+	<mvc:annotation-driven enable-matrix-variables="true" />
+
+	<!-- 避免ie执行ajax时，返回json时出现下载文件 -->
+	<bean id="mappingJacksonHttpMessageConverter"
+		class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+		<property name="supportedMediaTypes">
+			<list>
+				<value>text/html;charset=UTF-8</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- 启动springmvc注解功能，完成请求和注解pojo的映射 -->
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<ref bean="mappingJacksonHttpMessageConverter" /><!-- json转换器 -->
+			</list>
+		</property>
+	</bean>
+
+	<!-- 定义跳转的文件的前后缀，视图模式配置 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- 自动给后面action的方法return的字符串加上前缀和后缀，变成一个可用的url地址 -->
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8" />
+		<!-- 指定所上传文件的总大小不能超过10485760000B。注意maxUploadSize属性的限制不是针对单个文件，而是所有文件的容量之和 -->
+		<property name="maxUploadSize" value="10485760000"></property>
+		<property name="maxInMemorySize" value="40960"></property>
+
+	</bean>
+	
+	<!-- quarzt任务配置 -->  
+    <bean name="job1" class="com.yuan.utils.TestQuarzt"/>  
+    <bean id="jobDetail_1" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">  
+        <!-- 执行的类 -->  
+        <property name="targetObject">  
+            <ref bean="job1" />  
+        </property>  
+        <!-- 类中的方法 -->  
+        <property name="targetMethod">  
+            <value>QuarztTest</value>  
+        </property>  
+    </bean>  
+    <bean id="cronTrigger_1" class="org.springframework.scheduling.quartz.CronTriggerBean">  
+        <property name="jobDetail">  
+            <ref bean="jobDetail_1" />  
+        </property>  
+        <!-- 每一秒钟执行一次 -->  
+        <property name="cronExpression">
+        	<!-- 时间设置 -->  
+            <value>0/1 * * * * ?</value>  
+        </property>  
+    </bean> 
+    
+    <!-- 总配置（可进行批量设置） -->  
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">  
+        <!-- 添加触发器 -->  
+        <property name="triggers">  
+            <list>  
+                <ref bean="cronTrigger_1" />  
+            </list>  
+        </property>  
+    </bean>
+</beans>
